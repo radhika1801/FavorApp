@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Favor Tracker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Login Screen -->
+        <div id="loginScreen" class="login-screen">
+            <h1>Favor Tracker</h1>
+            <p>Track and share your social favors</p>
+            <input type="text" id="usernameInput" placeholder="Enter your name">
+            <button onclick="login()">Get Started</button>
+        </div>
+        
+        <!-- Main App -->
+        <div id="mainApp" style="display: none;">
+            <!-- Header -->
+            <div class="header">
+                <h1>Favor Tracker</h1>
+                <div class="username" id="headerUsername"></div>
+            </div>
+            
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('private')">My Favors</button>
+                <button class="tab" onclick="switchTab('public')">Public Feed</button>
+            </div>
+            
+            <!-- Private Page -->
+            <div id="privatePage" class="page active">
+                <!-- Favor Given Form -->
+                <div class="form-section">
+                    <h3>Favor I Gave</h3>
+                    <textarea id="favorGivenText" placeholder="What favor did you do?"></textarea>
+                    <div class="star-select">
+                        <label>How valuable?</label>
+                        <div class="star-buttons">
+                            <button type="button" class="star-btn" onclick="selectStars('given', 1)">1</button>
+                            <button type="button" class="star-btn" onclick="selectStars('given', 2)">2</button>
+                            <button type="button" class="star-btn selected" onclick="selectStars('given', 3)">3</button>
+                            <button type="button" class="star-btn" onclick="selectStars('given', 4)">4</button>
+                            <button type="button" class="star-btn" onclick="selectStars('given', 5)">5</button>
+                        </div>
+                    </div>
+                    <button class="submit-btn" onclick="submitFavor('given')">Log Favor Given</button>
+                </div>
+                
+                <!-- Favor Received Form -->
+                <div class="form-section">
+                    <h3>Favor I Received</h3>
+                    <textarea id="favorReceivedText" placeholder="What favor did you receive?"></textarea>
+                    <div class="star-select">
+                        <label>How valuable?</label>
+                        <div class="star-buttons">
+                            <button type="button" class="star-btn" onclick="selectStars('received', 1)">1</button>
+                            <button type="button" class="star-btn" onclick="selectStars('received', 2)">2</button>
+                            <button type="button" class="star-btn selected" onclick="selectStars('received', 3)">3</button>
+                            <button type="button" class="star-btn" onclick="selectStars('received', 4)">4</button>
+                            <button type="button" class="star-btn" onclick="selectStars('received', 5)">5</button>
+                        </div>
+                    </div>
+                    <button class="submit-btn" onclick="submitFavor('received')">Log Favor Received</button>
+                </div>
+                
+                <!-- User Stats -->
+                <div class="stats" id="userStats"></div>
+            </div>
+            
+            <!-- Public Page -->
+            <div id="publicPage" class="page">
+                <!-- Leaderboard -->
+                <div class="leaderboard" id="leaderboard"></div>
+                
+                <!-- Feed -->
+                <div class="feed" id="transactionFeed"></div>
+            </div>
+        </div>
+        
+        <!-- Help Button -->
+        <button class="help-btn" onclick="toggleHelp()">Rating Guide</button>
+        
+        <!-- Help Modal -->
+        <div class="modal" id="helpModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Rating Guide</h3>
+                    <button class="close-btn" onclick="toggleHelp()">&times;</button>
+                </div>
+                
+                <div class="rubric-item">
+                    <div class="rubric-rating">5 ★★★★★ — High value favor</div>
+                    <div class="rubric-examples">Examples: Helping friends move, covering a work shift, being someone's +1, teaching another person a skill</div>
+                </div>
+                
+                <div class="rubric-item">
+                    <div class="rubric-rating">4 ★★★★ — Thoughtful gesture</div>
+                    <div class="rubric-examples">Examples: Spontaneous gift, designated driver</div>
+                </div>
+                
+                <div class="rubric-item">
+                    <div class="rubric-rating">3 ★★★ — Medium favor</div>
+                    <div class="rubric-examples">Examples: Holiday related gift, event invitation, borrowing a valuable item</div>
+                </div>
+                
+                <div class="rubric-item">
+                    <div class="rubric-rating">2 ★★ — Small gesture</div>
+                    <div class="rubric-examples">Examples: Cup of coffee, social media interaction (like, comment), borrowing a charger or non-valuable item</div>
+                </div>
+                
+                <div class="rubric-item">
+                    <div class="rubric-rating">1 ★ — Minor favor</div>
+                    <div class="rubric-examples">Examples: Cup of water, holding the door, compliment or positive interaction</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <!-- Your Script -->
+    <script src="script.js"></script>
+</body>
+</html>
