@@ -3,117 +3,229 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Favor Tracker</title>
+    <title>5 Star Friends</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
         <!-- Login Screen -->
         <div id="loginScreen" class="login-screen">
-            <h1>Favor Tracker</h1>
+            <h1 class="login-title">5 Star Friends</h1>
             <p>Track and share your social favors</p>
+            <div class="logo-container">
+                <img src="assets/logo2.png" alt="5 Star Friends Logo" class="logo-main">
+            </div>
             <input type="text" id="usernameInput" placeholder="Enter your name">
-            <button onclick="login()">Get Started</button>
+            <button onclick="login()" class="get-started-btn">Get Started</button>
         </div>
         
         <!-- Main App -->
         <div id="mainApp" style="display: none;">
-            <!-- Header -->
-            <div class="header">
-                <h1>Favor Tracker</h1>
-                <div class="username" id="headerUsername"></div>
-            </div>
             
-            <!-- Tabs -->
-            <div class="tabs">
-                <button class="tab active" onclick="switchTab('private')">My Favors</button>
-                <button class="tab" onclick="switchTab('public')">Public Feed</button>
-            </div>
-            
-            <!-- Private Page -->
-            <div id="privatePage" class="page active">
-                <!-- Favor Given Form -->
-                <div class="form-section">
-                    <h3>Favor I Gave</h3>
-                    <textarea id="favorGivenText" placeholder="What favor did you do?"></textarea>
-                    <div class="star-select">
-                        <label>How valuable?</label>
-                        <div class="star-buttons">
-                            <button type="button" class="star-btn" onclick="selectStars('given', 1)">1</button>
-                            <button type="button" class="star-btn" onclick="selectStars('given', 2)">2</button>
-                            <button type="button" class="star-btn selected" onclick="selectStars('given', 3)">3</button>
-                            <button type="button" class="star-btn" onclick="selectStars('given', 4)">4</button>
-                            <button type="button" class="star-btn" onclick="selectStars('given', 5)">5</button>
-                        </div>
-                    </div>
-                    <button class="submit-btn" onclick="submitFavor('given')">Log Favor Given</button>
+            <!-- HOME Page - Give or Receive -->
+            <div id="homePage" class="page active">
+                <h2 class="page-title">LOG A FAVOR</h2>
+                
+                <!-- Give or Receive Toggle -->
+                <div class="home-toggle">
+                    <button class="home-toggle-btn active" onclick="selectHomeType('given')">
+                        GIVE FAVOR
+                    </button>
+                    <button class="home-toggle-btn" onclick="selectHomeType('received')">
+                        RECEIVE FAVOR
+                    </button>
                 </div>
                 
-                <!-- Favor Received Form -->
-                <div class="form-section">
-                    <h3>Favor I Received</h3>
-                    <textarea id="favorReceivedText" placeholder="What favor did you receive?"></textarea>
-                    <div class="star-select">
-                        <label>How valuable?</label>
-                        <div class="star-buttons">
-                            <button type="button" class="star-btn" onclick="selectStars('received', 1)">1</button>
-                            <button type="button" class="star-btn" onclick="selectStars('received', 2)">2</button>
-                            <button type="button" class="star-btn selected" onclick="selectStars('received', 3)">3</button>
-                            <button type="button" class="star-btn" onclick="selectStars('received', 4)">4</button>
-                            <button type="button" class="star-btn" onclick="selectStars('received', 5)">5</button>
+                <!-- Transaction Form -->
+                <div class="home-form">
+                    <textarea id="homeInput" placeholder="What favor did you give?"></textarea>
+                    
+                    <div class="rating-section">
+                        <p>RATE YOUR FAVOR</p>
+                        <div class="star-rating" id="homeStarRating">
+                            <img src="assets/star.png" class="star-icon filled" onclick="setHomeRating(1)">
+                            <img src="assets/star.png" class="star-icon filled" onclick="setHomeRating(2)">
+                            <img src="assets/star.png" class="star-icon filled" onclick="setHomeRating(3)">
+                            <img src="assets/star.png" class="star-icon" onclick="setHomeRating(4)">
+                            <img src="assets/star.png" class="star-icon" onclick="setHomeRating(5)">
                         </div>
                     </div>
-                    <button class="submit-btn" onclick="submitFavor('received')">Log Favor Received</button>
+                    
+                    <button class="submit-btn" onclick="submitFromHome()">LOG FAVOR</button>
                 </div>
-                
-                <!-- User Stats -->
-                <div class="stats" id="userStats"></div>
             </div>
             
-            <!-- Public Page -->
+            <!-- MY CONNECTIONS Page -->
+            <div id="connectionsPage" class="page">
+                <h2 class="page-title">MY CONNECTIONS</h2>
+                
+                <!-- Add Friend Section -->
+                <div class="add-friend-section">
+                    <input type="text" id="friendInput" placeholder="Enter friend's name" class="add-friend-input">
+                    <button onclick="addFriendWithFavor('given')" class="add-friend-btn">GAVE FAVOR</button>
+                    <button onclick="addFriendWithFavor('received')" class="add-friend-btn receive-btn">GOT FAVOR</button>
+                </div>
+                
+                <div class="connections-list" id="connectionsList">
+                    <!-- Friends will be populated here -->
+                </div>
+            </div>
+            
+            <!-- PUBLIC FEED Page -->
             <div id="publicPage" class="page">
-                <!-- Leaderboard -->
-                <div class="leaderboard" id="leaderboard"></div>
+                <div class="feed-toggle">
+                    <button class="toggle-btn active" onclick="filterFeed('all')">ALL FAVORS</button>
+                    <button class="toggle-btn" onclick="filterFeed('given')">GIVEN</button>
+                    <button class="toggle-btn" onclick="filterFeed('received')">RECEIVED</button>
+                </div>
                 
-                <!-- Feed -->
-                <div class="feed" id="transactionFeed"></div>
+                <div id="publicFeedContent">
+                    <!-- Feed items will be populated here -->
+                </div>
+            </div>
+            
+            <!-- LEADERBOARD Page -->
+            <div id="leaderboardPage" class="page">
+                <h2 class="page-title">LEADERBOARD</h2>
+                <div id="leaderboardContent">
+                    <!-- Leaderboard will be populated here -->
+                </div>
+            </div>
+            
+            <!-- Bottom Navigation -->
+            <div class="bottom-nav">
+                <div class="nav-item" onclick="switchTab('home')" id="navHome">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                    </svg>
+                    <span>HOME</span>
+                </div>
+                
+                <div class="nav-item" onclick="switchTab('public')" id="navPublic">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                    </svg>
+                    <span>PUBLIC FEED</span>
+                </div>
+                
+                <div class="nav-item central-give" onclick="showGiveReceiveModal()">
+                    <div class="give-receive-btn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                            <path d="M16 17.01V10h-2v7.01h-3L15 21l4-3.99h-3zM9 3L5 6.99h3V14h2V6.99h3L9 3z"/>
+                        </svg>
+                    </div>
+                    <span>GIVE & RECEIVE</span>
+                </div>
+                
+                <div class="nav-item" onclick="switchTab('connections')" id="navConnections">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+                    </svg>
+                    <span>MY CONNECTIONS</span>
+                </div>
+                
+                <div class="nav-item" onclick="switchTab('leaderboard')" id="navStats">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+                    </svg>
+                    <span>LEADERBOARD</span>
+                </div>
             </div>
         </div>
         
-        <!-- Help Button -->
+        <!-- Transaction Modal -->
+        <div id="transactionModal" class="modal">
+            <div class="modal-content">
+                <button class="close-modal" onclick="closeTransactionModal()">&times;</button>
+                
+                <h3 id="modalTitle">LOG FAVOR</h3>
+                <p id="modalFriendName" class="modal-friend-name"></p>
+                
+                <textarea id="modalInput" placeholder="What favor did you give?"></textarea>
+                
+                <div class="rating-section">
+                    <p>RATE YOUR FAVOR</p>
+                    <div class="star-rating" id="modalStarRating">
+                        <img src="assets/star.png" class="star-icon filled" onclick="setModalRating(1)">
+                        <img src="assets/star.png" class="star-icon filled" onclick="setModalRating(2)">
+                        <img src="assets/star.png" class="star-icon filled" onclick="setModalRating(3)">
+                        <img src="assets/star.png" class="star-icon" onclick="setModalRating(4)">
+                        <img src="assets/star.png" class="star-icon" onclick="setModalRating(5)">
+                    </div>
+                </div>
+                
+                <button class="submit-btn" onclick="submitFromModal()">LOG FAVOR</button>
+            </div>
+        </div>
+        
+        <!-- Rating Guide Button -->
         <button class="help-btn" onclick="toggleHelp()">Rating Guide</button>
         
         <!-- Help Modal -->
         <div class="modal" id="helpModal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>Rating Guide</h3>
-                    <button class="close-btn" onclick="toggleHelp()">&times;</button>
+            <div class="modal-content rating-guide-modal">
+                <button class="close-modal" onclick="toggleHelp()">&times;</button>
+                
+                <h3>RATING GUIDE</h3>
+                
+                <div class="rubric-item">
+                    <div class="rubric-rating">
+                        <div class="rubric-stars">
+                            <img src="assets/star.png" class="rubric-star">
+                            <img src="assets/star.png" class="rubric-star">
+                            <img src="assets/star.png" class="rubric-star">
+                            <img src="assets/star.png" class="rubric-star">
+                            <img src="assets/star.png" class="rubric-star">
+                        </div>
+                        <span>High value favor</span>
+                    </div>
+                    <div class="rubric-examples">Helping friends move, covering a work shift, teaching a skill</div>
                 </div>
                 
                 <div class="rubric-item">
-                    <div class="rubric-rating">5 ★★★★★ — High value favor</div>
-                    <div class="rubric-examples">Examples: Helping friends move, covering a work shift, being someone's +1, teaching another person a skill</div>
+                    <div class="rubric-rating">
+                        <div class="rubric-stars">
+                            <img src="assets/star.png" class="rubric-star">
+                            <img src="assets/star.png" class="rubric-star">
+                            <img src="assets/star.png" class="rubric-star">
+                            <img src="assets/star.png" class="rubric-star">
+                        </div>
+                        <span>Thoughtful gesture</span>
+                    </div>
+                    <div class="rubric-examples">Spontaneous gift, designated driver</div>
                 </div>
                 
                 <div class="rubric-item">
-                    <div class="rubric-rating">4 ★★★★ — Thoughtful gesture</div>
-                    <div class="rubric-examples">Examples: Spontaneous gift, designated driver</div>
+                    <div class="rubric-rating">
+                        <div class="rubric-stars">
+                            <img src="assets/star.png" class="rubric-star">
+                            <img src="assets/star.png" class="rubric-star">
+                            <img src="assets/star.png" class="rubric-star">
+                        </div>
+                        <span>Medium favor</span>
+                    </div>
+                    <div class="rubric-examples">Holiday gift, event invitation, borrowing valuable item</div>
                 </div>
                 
                 <div class="rubric-item">
-                    <div class="rubric-rating">3 ★★★ — Medium favor</div>
-                    <div class="rubric-examples">Examples: Holiday related gift, event invitation, borrowing a valuable item</div>
+                    <div class="rubric-rating">
+                        <div class="rubric-stars">
+                            <img src="assets/star.png" class="rubric-star">
+                            <img src="assets/star.png" class="rubric-star">
+                        </div>
+                        <span>Small gesture</span>
+                    </div>
+                    <div class="rubric-examples">Cup of coffee, social media like, borrowing charger</div>
                 </div>
                 
                 <div class="rubric-item">
-                    <div class="rubric-rating">2 ★★ — Small gesture</div>
-                    <div class="rubric-examples">Examples: Cup of coffee, social media interaction (like, comment), borrowing a charger or non-valuable item</div>
-                </div>
-                
-                <div class="rubric-item">
-                    <div class="rubric-rating">1 ★ — Minor favor</div>
-                    <div class="rubric-examples">Examples: Cup of water, holding the door, compliment or positive interaction</div>
+                    <div class="rubric-rating">
+                        <div class="rubric-stars">
+                            <img src="assets/star.png" class="rubric-star">
+                        </div>
+                        <span>Minor favor</span>
+                    </div>
+                    <div class="rubric-examples">Cup of water, holding door, compliment</div>
                 </div>
             </div>
         </div>
@@ -123,7 +235,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     
-    <!-- Your Script -->
     <script src="script.js"></script>
 </body>
 </html>

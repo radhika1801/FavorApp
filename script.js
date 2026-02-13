@@ -1,4 +1,4 @@
-// Firebase configuration - YOUR ACTUAL CONFIG
+// Firebase config
 const firebaseConfig = {
     apiKey: "AIzaSyBOth5SxinCh2ndsgKa9Mwry9IPF4SKq-g",
     authDomain: "favor-tracker-af25f.firebaseapp.com",
@@ -6,79 +6,28 @@ const firebaseConfig = {
     projectId: "favor-tracker-af25f",
     storageBucket: "favor-tracker-af25f.firebasestorage.app",
     messagingSenderId: "444981205078",
-    appId: "1:444981205078:web:e51ec9904d52a9823ac3f7",
-    measurementId: "G-YXF34QBPBG"
+    appId: "1:444981205078:web:e51ec9904d52a9823ac3f7"
 };
 
-// Star rating values (just 1-5, no points)
-const FAVOR_VALUES = {
-    5: 'Helping friends move',
-    4: 'Spontaneous gift',
-    3: 'Holiday related gift',
-    2: 'Cup of coffee',
-    1: 'Cup of water'
-};
-
-// App state
 let currentUser = '';
 let allTransactions = [];
 let userStats = {};
-let selectedStarsGiven = 3;
-let selectedStarsReceived = 3;
+let homeRating = 3;
+let homeType = 'given';
+let currentFeedFilter = 'all';
+let modalRating = 3;
+let modalType = 'given';
+let modalFriendName = '';
 let db = null;
 
-// Initialize Firebase
+// Init Firebase
 function initFirebase() {
-    if (typeof firebase === 'undefined') {
-        console.error('Firebase not loaded');
-        return;
-    }
-    
+    if (typeof firebase === 'undefined') return;
     try {
         firebase.initializeApp(firebaseConfig);
         db = firebase.database();
-        console.log('Firebase initialized successfully');
     } catch (error) {
-        console.error('Firebase initialization error:', error);
-    }
-}
-
-// Toggle help modal
-function toggleHelp() {
-    const modal = document.getElementById('helpModal');
-    modal.classList.toggle('show');
-}
-
-// Close modal when clicking outside
-window.onclick = function(event) {
-    const modal = document.getElementById('helpModal');
-    if (event.target === modal) {
-        modal.classList.remove('show');
-    }
-}
-
-// Select stars
-function selectStars(type, stars) {
-    if (type === 'given') {
-        selectedStarsGiven = stars;
-        const buttons = document.querySelectorAll('.form-section:first-child .star-btn');
-        buttons.forEach((btn, idx) => {
-            if (idx + 1 === stars) {
-                btn.classList.add('selected');
-            } else {
-                btn.classList.remove('selected');
-            }
-        });
-    } else {
-        selectedStarsReceived = stars;
-        const buttons = document.querySelectorAll('.form-section:nth-child(2) .star-btn');
-        buttons.forEach((btn, idx) => {
-            if (idx + 1 === stars) {
-                btn.classList.add('selected');
-            } else {
-                btn.classList.remove('selected');
-            }
-        });
+        console.error('Firebase error:', error);
     }
 }
 
@@ -89,100 +38,109 @@ function login() {
         alert('Please enter your name');
         return;
     }
-    
     currentUser = username;
-    document.getElementById('headerUsername').textContent = `Logged in as ${username}`;
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('mainApp').style.display = 'block';
-    
-    // Initialize Firebase and load data
     initFirebase();
     loadData();
+    switchTab('home');
 }
 
 // Switch tabs
 function switchTab(tab) {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    event.target.classList.add('active');
-    
+    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    if (tab === 'private') {
-        document.getElementById('privatePage').classList.add('active');
-    } else {
+    
+    if (tab === 'home') {
+        document.getElementById('homePage').classList.add('active');
+        document.getElementById('navHome').classList.add('active');
+    } else if (tab === 'connections') {
+        document.getElementById('connectionsPage').classList.add('active');
+        document.getElementById('navConnections').classList.add('active');
+        renderConnections();
+    } else if (tab === 'public') {
         document.getElementById('publicPage').classList.add('active');
-        renderPublicFeed();
+        document.getElementById('navPublic').classList.add('active');
+        filterFeed('all');
+    } else if (tab === 'leaderboard') {
+        document.getElementById('leaderboardPage').classList.add('active');
+        document.getElementById('navStats').classList.add('active');
+        renderLeaderboard();
     }
 }
 
-// Submit favor
-function submitFavor(type) {
-    const textEl = document.getElementById(type === 'given' ? 'favorGivenText' : 'favorReceivedText');
+// Home page functions
+function selectHomeType(type) {
+    homeType = type;
+    document.querySelectorAll('.home-toggle-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
     
-    const favor = textEl.value.trim();
-    const stars = type === 'given' ? selectedStarsGiven : selectedStarsReceived;
-    
+    const placeholder = type === 'given' ? 'What favor did you give?' : 'What favor did you receive?';
+    document.getElementById('homeInput').placeholder = placeholder;
+}
+
+function setHomeRating(rating) {
+    homeRating = rating;
+    const stars = document.querySelectorAll('#homeStarRating .star-icon');
+    stars.forEach((star, idx) => {
+        star.classList.toggle('filled', idx < rating);
+    });
+}
+
+function submitFromHome() {
+    const favor = document.getElementById('homeInput').value.trim();
     if (!favor) {
         alert('Please describe the favor');
         return;
     }
-    
     if (!db) {
-        alert('Database not connected. Please refresh the page.');
+        alert('Database not connected');
         return;
     }
     
     const transaction = {
         username: currentUser,
-        type: type,
+        type: homeType,
         favor: favor,
-        stars: stars,
+        stars: homeRating,
         timestamp: new Date().toISOString()
     };
     
-    // Save to Firebase
-    const newRef = db.ref('transactions').push();
-    newRef.set(transaction)
+    db.ref('transactions').push().set(transaction)
         .then(() => {
-            // Reset form
-            textEl.value = '';
-            if (type === 'given') {
-                selectedStarsGiven = 3;
-                selectStars('given', 3);
-            } else {
-                selectedStarsReceived = 3;
-                selectStars('received', 3);
-            }
-            alert('Favor logged successfully!');
+            document.getElementById('homeInput').value = '';
+            homeRating = 3;
+            setHomeRating(3);
+            alert('Favor logged! 🌟');
         })
         .catch((error) => {
-            console.error('Error saving:', error);
-            alert('Error saving favor: ' + error.message);
+            alert('Error: ' + error.message);
         });
 }
 
-// Load all data from Firebase
+// Central give/receive button
+function showGiveReceiveModal() {
+    switchTab('home');
+}
+
+// Load data
 function loadData() {
-    if (!db) {
-        console.error('Database not initialized');
-        return;
-    }
-    
-    // Listen for real-time updates
+    if (!db) return;
     db.ref('transactions').on('value', (snapshot) => {
         allTransactions = [];
-        
-        snapshot.forEach((childSnapshot) => {
-            const transaction = childSnapshot.val();
-            transaction.id = childSnapshot.key;
-            allTransactions.push(transaction);
+        snapshot.forEach((child) => {
+            const t = child.val();
+            t.id = child.key;
+            allTransactions.push(t);
         });
-        
         calculateStats();
-        renderUserStats();
         
-        // Update public feed if it's open
-        if (document.getElementById('publicPage').classList.contains('active')) {
-            renderPublicFeed();
+        // Refresh current view
+        const activePage = document.querySelector('.page.active');
+        if (activePage) {
+            if (activePage.id === 'connectionsPage') renderConnections();
+            else if (activePage.id === 'publicPage') filterFeed(currentFeedFilter);
+            else if (activePage.id === 'leaderboardPage') renderLeaderboard();
         }
     });
 }
@@ -193,78 +151,205 @@ function calculateStats() {
     allTransactions.forEach(t => {
         if (!userStats[t.username]) {
             userStats[t.username] = {
-                favorsGiven: 0,
-                favorsReceived: 0,
+                given: 0,
+                received: 0,
                 starsGiven: 0,
                 starsReceived: 0,
-                avgStarsGiven: 0,
-                avgStarsReceived: 0
+                transactions: []
             };
         }
-        
         if (t.type === 'given') {
-            userStats[t.username].favorsGiven += 1;
+            userStats[t.username].given += 1;
             userStats[t.username].starsGiven += t.stars;
         } else {
-            userStats[t.username].favorsReceived += 1;
+            userStats[t.username].received += 1;
             userStats[t.username].starsReceived += t.stars;
         }
-        
-        // Calculate averages
-        if (userStats[t.username].favorsGiven > 0) {
-            userStats[t.username].avgStarsGiven = 
-                (userStats[t.username].starsGiven / userStats[t.username].favorsGiven).toFixed(1);
-        }
-        if (userStats[t.username].favorsReceived > 0) {
-            userStats[t.username].avgStarsReceived = 
-                (userStats[t.username].starsReceived / userStats[t.username].favorsReceived).toFixed(1);
-        }
+        userStats[t.username].transactions.push(t);
     });
 }
 
-// Render user stats
-function renderUserStats() {
-    const statsEl = document.getElementById('userStats');
-    const stats = userStats[currentUser];
+// Render connections
+function renderConnections() {
+    const listEl = document.getElementById('connectionsList');
+    const friends = Object.keys(userStats).filter(u => u !== currentUser);
     
-    if (!stats) {
-        statsEl.innerHTML = '<h3>Your Stats</h3><p style="color: #999;">No favors logged yet</p>';
+    if (friends.length === 0) {
+        listEl.innerHTML = '<div class="empty-state">No connections yet. Add a friend and log a favor to get started!</div>';
         return;
     }
     
-    statsEl.innerHTML = `
-        <h3>Your Stats</h3>
-        <div class="stat-row">
-            <span class="stat-label">Favors Given:</span>
-            <span class="stat-value">${stats.favorsGiven} (avg ${stats.avgStarsGiven || 0} ★)</span>
-        </div>
-        <div class="stat-row">
-            <span class="stat-label">Favors Received:</span>
-            <span class="stat-value">${stats.favorsReceived} (avg ${stats.avgStarsReceived || 0} ★)</span>
-        </div>
-        <div class="stat-row">
-            <span class="stat-label">Total Stars Given:</span>
-            <span class="stat-value">${stats.starsGiven} ★</span>
-        </div>
-        <div class="stat-row">
-            <span class="stat-label">Total Stars Received:</span>
-            <span class="stat-value profit">${stats.starsReceived} ★</span>
-        </div>
-    `;
+    let html = '';
+    friends.forEach(friendName => {
+        const stats = userStats[friendName];
+        const recentTrans = stats.transactions
+            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+            .slice(0, 3);
+        
+        html += `
+            <div class="connection-card">
+                <div class="connection-header">
+                    <div class="connection-name">${friendName}</div>
+                    <div class="connection-stars">
+                        <span>${stats.starsGiven}★</span> | <span>${stats.starsReceived}★</span>
+                    </div>
+                </div>
+                ${recentTrans.length > 0 ? `
+                    <div class="transaction-label">Recent Activity ➔</div>
+                    ${recentTrans.map(t => `
+                        <div class="mini-transaction">
+                            <div class="mini-initial">${t.username.charAt(0).toUpperCase()}</div>
+                            <div style="flex: 1;">${t.favor.substring(0, 40)}${t.favor.length > 40 ? '...' : ''}</div>
+                            <div>${'★'.repeat(t.stars)}</div>
+                        </div>
+                    `).join('')}
+                ` : ''}
+            </div>
+        `;
+    });
+    listEl.innerHTML = html;
 }
 
-// Render public feed
-function renderPublicFeed() {
-    renderLeaderboard();
-    renderTransactionFeed();
+// Add friend with favor
+function addFriendWithFavor(type) {
+    const friendName = document.getElementById('friendInput').value.trim();
+    
+    if (!friendName) {
+        alert('Please enter a friend\'s name');
+        return;
+    }
+    
+    if (friendName.toLowerCase() === currentUser.toLowerCase()) {
+        alert('You cannot add yourself as a friend!');
+        return;
+    }
+    
+    // Set up modal
+    modalFriendName = friendName;
+    modalType = type;
+    modalRating = 3;
+    
+    // Update modal UI
+    if (type === 'given') {
+        document.getElementById('modalTitle').textContent = 'FAVOR YOU GAVE';
+        document.getElementById('modalInput').placeholder = 'What favor did you give?';
+    } else {
+        document.getElementById('modalTitle').textContent = 'FAVOR YOU RECEIVED';
+        document.getElementById('modalInput').placeholder = 'What favor did you receive?';
+    }
+    
+    document.getElementById('modalFriendName').textContent = `Friend: ${friendName}`;
+    document.getElementById('modalInput').value = '';
+    setModalRating(3);
+    
+    // Show modal
+    document.getElementById('transactionModal').classList.add('show');
+}
+
+// Set modal rating
+function setModalRating(rating) {
+    modalRating = rating;
+    const stars = document.querySelectorAll('#modalStarRating .star-icon');
+    stars.forEach((star, idx) => {
+        star.classList.toggle('filled', idx < rating);
+    });
+}
+
+// Submit from modal
+function submitFromModal() {
+    const favor = document.getElementById('modalInput').value.trim();
+    
+    if (!favor) {
+        alert('Please describe the favor');
+        return;
+    }
+    
+    if (!db) {
+        alert('Database not connected');
+        return;
+    }
+    
+    const transaction = {
+        username: modalType === 'given' ? currentUser : modalFriendName,
+        type: modalType,
+        favor: favor,
+        stars: modalRating,
+        timestamp: new Date().toISOString()
+    };
+    
+    db.ref('transactions').push().set(transaction)
+        .then(() => {
+            closeTransactionModal();
+            document.getElementById('friendInput').value = '';
+            alert(`Favor logged with ${modalFriendName}! 🌟`);
+        })
+        .catch((error) => {
+            alert('Error: ' + error.message);
+        });
+}
+
+// Close transaction modal
+function closeTransactionModal() {
+    document.getElementById('transactionModal').classList.remove('show');
+    document.getElementById('modalInput').value = '';
+    document.getElementById('modalFriendName').textContent = '';
+    modalRating = 3;
+    setModalRating(3);
+}
+
+// Filter feed
+function filterFeed(type) {
+    currentFeedFilter = type;
+    document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    const feedEl = document.getElementById('publicFeedContent');
+    
+    let filtered = allTransactions;
+    if (type === 'given') {
+        filtered = allTransactions.filter(t => t.type === 'given');
+    } else if (type === 'received') {
+        filtered = allTransactions.filter(t => t.type === 'received');
+    }
+    
+    if (filtered.length === 0) {
+        feedEl.innerHTML = '<div class="empty-state">No transactions yet</div>';
+        return;
+    }
+    
+    const sorted = [...filtered].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    
+    let html = '';
+    sorted.forEach(t => {
+        const initial = t.username.charAt(0).toUpperCase();
+        const action = t.type === 'given' ? 'gave a favor' : 'received a favor';
+        
+        html += `
+            <div class="feed-item">
+                <div class="feed-header">
+                    <div class="feed-initial">${initial}</div>
+                    <div>
+                        <div class="feed-username">${t.username}</div>
+                        <div class="feed-action">${action}</div>
+                    </div>
+                </div>
+                <div class="feed-favor">${t.favor}</div>
+                <div class="feed-stars">
+                    ${Array(t.stars).fill('<img src="assets/star.png" class="star-img-small">').join('')}
+                </div>
+                <div class="feed-time">${formatTime(t.timestamp)}</div>
+            </div>
+        `;
+    });
+    feedEl.innerHTML = html;
 }
 
 // Render leaderboard
 function renderLeaderboard() {
-    const leaderboardEl = document.getElementById('leaderboard');
+    const boardEl = document.getElementById('leaderboardContent');
     
     if (Object.keys(userStats).length === 0) {
-        leaderboardEl.innerHTML = '<h3>Leaderboard</h3><p class="empty-state">No transactions yet</p>';
+        boardEl.innerHTML = '<div class="empty-state">No data yet</div>';
         return;
     }
     
@@ -272,60 +357,21 @@ function renderLeaderboard() {
         userStats[b].starsReceived - userStats[a].starsReceived
     );
     
-    let html = '<h3>Leaderboard</h3>';
-    sorted.forEach(username => {
+    let html = '';
+    sorted.forEach((username, index) => {
         const stats = userStats[username];
         html += `
             <div class="leaderboard-item">
-                <div>
-                    <div class="leaderboard-user">${username}</div>
-                    <div class="leaderboard-score">Given: ${stats.starsGiven}★ | Received: ${stats.starsReceived}★</div>
+                <span class="leaderboard-rank">#${index + 1}</span>
+                <div style="flex: 1;">
+                    <div class="leaderboard-name">${username}</div>
+                    <div class="leaderboard-stats">Given: ${stats.starsGiven}★ | Received: ${stats.starsReceived}★</div>
                 </div>
-                <div class="leaderboard-profit">
-                    ${stats.starsReceived}★
-                </div>
+                <div class="leaderboard-score">${stats.starsReceived}★</div>
             </div>
         `;
     });
-    
-    leaderboardEl.innerHTML = html;
-}
-
-// Render transaction feed
-function renderTransactionFeed() {
-    const feedEl = document.getElementById('transactionFeed');
-    
-    if (allTransactions.length === 0) {
-        feedEl.innerHTML = '<div class="empty-state">No transactions yet. Start logging favors!</div>';
-        return;
-    }
-    
-    const sorted = [...allTransactions].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    
-    let html = '';
-    sorted.forEach(t => {
-        const initial = t.username.charAt(0).toUpperCase();
-        const actionText = t.type === 'given' ? 'gave a favor' : 'received a favor';
-        const time = formatTime(t.timestamp);
-        const stars = '★'.repeat(t.stars);
-        
-        html += `
-            <div class="transaction-item">
-                <div class="transaction-header">
-                    <div class="avatar">${initial}</div>
-                    <div class="transaction-info">
-                        <div class="transaction-users">${t.username}</div>
-                        <div class="transaction-action">${actionText}</div>
-                    </div>
-                </div>
-                <div class="transaction-description">${t.favor}</div>
-                <div class="transaction-stars">${stars}</div>
-                <div class="transaction-meta">${time}</div>
-            </div>
-        `;
-    });
-    
-    feedEl.innerHTML = html;
+    boardEl.innerHTML = html;
 }
 
 // Format time
@@ -342,4 +388,22 @@ function formatTime(timestamp) {
     if (hours < 24) return `${hours}h ago`;
     if (days < 7) return `${days}d ago`;
     return date.toLocaleDateString();
+}
+
+// Toggle help
+function toggleHelp() {
+    document.getElementById('helpModal').classList.toggle('show');
+}
+
+// Close modals
+window.onclick = function(event) {
+    const helpModal = document.getElementById('helpModal');
+    const transModal = document.getElementById('transactionModal');
+    
+    if (event.target === helpModal) {
+        toggleHelp();
+    }
+    if (event.target === transModal) {
+        closeTransactionModal();
+    }
 }
