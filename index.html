@@ -51,20 +51,50 @@
 
         <!-- ─── HOME PAGE ─── -->
         <div id="homePage" class="page active page-home">
-            <!-- Frosted glass card — sits over the #mainApp background image -->
             <div class="home-card">
+                <!-- Top decorative bubble image -->
+                <img src="assets/topbubbleforallpages.png" class="home-top-bubble" alt="">
+                <!-- Layeroverbubblebackground fills the card body -->
+                <img src="assets/Layeroverbubblebackground.png" class="home-card-layer" alt="">
                 <div class="home-card-inner">
                     <!-- Logo top-left -->
                     <div class="home-logo-wrap">
                         <img src="assets/logo2.png" class="home-logo" alt="5 Star Friends">
                     </div>
-                    <!-- Person bubble centred -->
+                    <!-- Person icon + text centred -->
                     <div class="home-person-wrap">
                         <div class="home-person-bubble">
                             <img src="assets/PersonIcon.png" class="home-person-img" alt="User">
                         </div>
                         <p class="home-welcome-text" id="homeWelcomeText">Welcome back user</p>
                         <p class="home-welcome-sub">What would you like to do today?</p>
+                    </div>
+
+                    <!-- Ad carousel -->
+                    <div class="home-ad-carousel">
+                        <button class="ad-arrow ad-arrow-left" onclick="adNav(-1)">&#8249;</button>
+                        <div class="home-ad-track" id="adTrack">
+                            <img src="assets/ad1.png" class="home-ad-img" alt="" onclick="openAdModal(0)">
+                            <img src="assets/ad2.png" class="home-ad-img" alt="" onclick="openAdModal(1)">
+                            <img src="assets/ad3.png" class="home-ad-img" alt="" onclick="openAdModal(2)">
+                        </div>
+                        <button class="ad-arrow ad-arrow-right" onclick="adNav(1)">&#8250;</button>
+                        <!-- Dots -->
+                        <div class="ad-dots">
+                            <span class="ad-dot ad-dot-active" onclick="adGoTo(0)"></span>
+                            <span class="ad-dot" onclick="adGoTo(1)"></span>
+                            <span class="ad-dot" onclick="adGoTo(2)"></span>
+                        </div>
+                    </div>
+
+                    <!-- Ad lightbox modal -->
+                    <div class="ad-modal-overlay" id="adModalOverlay" onclick="closeAdModal()">
+                        <div class="ad-modal-card" onclick="event.stopPropagation()">
+                            <button class="ad-modal-close" onclick="closeAdModal()">&#10005;</button>
+                            <button class="ad-modal-arrow ad-modal-left" onclick="adModalNav(-1)">&#8249;</button>
+                            <img src="" id="adModalImg" class="ad-modal-img" alt="">
+                            <button class="ad-modal-arrow ad-modal-right" onclick="adModalNav(1)">&#8250;</button>
+                        </div>
                     </div>
                 </div>
             </div>

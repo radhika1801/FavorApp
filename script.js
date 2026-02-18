@@ -415,3 +415,44 @@ window.onclick = e => {
     if (e.target === document.getElementById('helpModal'))         toggleHelp();
     if (e.target === document.getElementById('transactionModal'))  closeTransactionModal();
 };
+
+/* ─────────────────────────────
+   AD CAROUSEL
+───────────────────────────── */
+const AD_IMGS = ['assets/ad1.png', 'assets/ad2.png', 'assets/ad3.png'];
+let adCurrent = 0;
+let adModalCurrent = 0;
+
+function adGoTo(idx) {
+    adCurrent = (idx + AD_IMGS.length) % AD_IMGS.length;
+    const track = document.getElementById('adTrack');
+    if (!track) return;
+    // Track is 300% wide; each slide = 1/3 = 33.333%
+    track.style.transform = `translateX(-${adCurrent * (100 / AD_IMGS.length)}%)`;
+    // Update dots
+    document.querySelectorAll('.ad-dot').forEach((d, i) => {
+        d.classList.toggle('ad-dot-active', i === adCurrent);
+    });
+}
+
+function adNav(dir) {
+    adGoTo(adCurrent + dir);
+}
+
+function openAdModal(idx) {
+    adModalCurrent = idx;
+    document.getElementById('adModalImg').src = AD_IMGS[idx];
+    document.getElementById('adModalOverlay').classList.add('show');
+}
+
+function adModalNav(dir) {
+    adModalCurrent = (adModalCurrent + dir + AD_IMGS.length) % AD_IMGS.length;
+    document.getElementById('adModalImg').src = AD_IMGS[adModalCurrent];
+}
+
+function closeAdModal() {
+    document.getElementById('adModalOverlay').classList.remove('show');
+}
+
+// Auto-advance every 4s
+setInterval(() => { adNav(1); }, 4000);
